@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>取色器</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f4f4f4;
+  }
+  #colorPreview {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+  }
+  .color-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .color-label {
+    margin-right: 10px;
+  }
+  .color-input {
+    width: 60px;
+    margin-right: 10px;
+  }
+  .color-slider {
+    width: 200px;
+  }
+  #hexInputContainer {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+  #hexInputContainer button {
+    margin-left: 10px;
+  }
+  .tooltip {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 8px;
+    background: #333;
+    color: #fff;
+    z-index: 1000;
+    border-radius: 4px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div id="colorPreview" style="background-color: #000000;"></div>
+
+<div class="color-container">
+  <span class="color-label">r:</span>
+  <input type="range" id="rSlider" class="color-slider" value="0" min="0" max="255" oninput="updateColor()">
+  <input type="text" id="r" class="color-input" value="0" oninput="updateColor()">
+</div>
+
+<div class="color-container">
+  <span class="color-label">g:</span>
+  <input type="range" id="gSlider" class="color-slider" value="0" min="0" max="255" oninput="updateColor()">
+  <input type="text" id="g" class="color-input" value="0" oninput="updateColor()">
+</div>
+
+<div class="color-container">
+  <span class="color-label">b:</span>
+  <input type="range" id="bSlider" class="color-slider" value="0" min="0" max="255" oninput="updateColor()">
+  <input type="text" id="b" class="color-input" value="0" oninput="updateColor()">
+</div>
+
+<div id="hexInputContainer">
+  #<input type="text" id="hex" value="000000" oninput="updateFromHex()">
+  <button onclick="copyToClipboard()">Copy</button>
+</div>
+
+<div id="tooltip" class="tooltip"></div>
+
+<script>
+  function updateColor() {
+    var r = parseInt(document.getElementById('r').value);
+    var g = parseInt(document.getElementById('g').value);
+    var b = parseInt(document.getElementById('b').value);
+    var hex = ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).padStart(6, '0');
+    document.getElementById('colorPreview').style.backgroundColor = "#" + hex;
+    document.getElementById('hex').value = hex;
+    document.getElementById('rSlider').value = r;
+    document.getElementById('gSlider').value = g;
+    document.getElementById('bSlider').value = b;
+  }
+
+  function copyToClipboard() {
+    var copyText = document.getElementById("hex");
+    var hexValue = "#" + copyText.value;
+    navigator.clipboard.writeText(hexValue).then(function() {
+      var tooltip = document.getElementById('tooltip');
+      tooltip.textContent = "Copied #" + copyText.value + " to clipboard";
+      tooltip.style.display = 'block';
+      setTimeout(function() {
+        tooltip.style.display = 'none';
+      }, 1500);
+    }, function(err) {
+      var tooltip = document.getElementById('tooltip');
+      tooltip.textContent = "Failed to copy";
+      tooltip.style.display = 'block';
+      setTimeout(function() {
+        tooltip.style.display = 'none';
+      }, 1500);
+    });
+  }
+
+  function updateFromHex() {
+    var hex = document.getElementById('hex').value.replace('#', '');
+    if (/^([0-9A-F]{3}){1,2}$/i.test(hex)) {
+      hex = hex.length === 3 ? hex.split('').map(function(c) { return c + c; }).join('') : hex;
+      var r = parseInt(hex.slice(0, 2), 16);
+      var g = parseInt(hex.slice(2, 4), 16);
+      var b = parseInt(hex.slice(4, 6), 16);
+      document.getElementById('colorPreview').style.backgroundColor = "#" + hex;
+      document.getElementById('r').value = r;
+      document.getElementById('g').value = g;
+      document.getElementById('b').value = b;
+      document.getElementById('rSlider').value = r;
+      document.getElementById('gSlider').value = g;
+      document.getElementById('bSlider').value = b;
+    } else {
+      var tooltip = document.getElementById('tooltip');
+      tooltip.textContent = "Please enter a valid hex color code.";
+      tooltip.style.display = 'block';
+      setTimeout(function() {
+        tooltip.style.display = 'none';
+      }, 1500);
+    }
+  }
+
+  document.querySelectorAll('input[type="range"]').forEach(slider => {
+    slider.addEventListener('input', function() {
+      var id = this.id.replace('Slider', '');
+      document.getElementById(id).value = this.value;
+      updateColor();
+    });
+  });
+
+  document.querySelectorAll('input[type="text"]').forEach(input => {
+    input.addEventListener('input', updateColor);
+  });
+</script>
+
+</body>
+</html>
